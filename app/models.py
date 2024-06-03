@@ -51,6 +51,9 @@ class User(UserMixin, db.Model):
         self.notifications.append(Notification(name=name, data=data, user_id=self.id))
         db.session.commit()
 
+    def unread_messages(self):
+        return Message.query.filter_by(recipient=self, read=False).count()
+
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     image_file = db.Column(db.String(20), nullable=False)
@@ -68,7 +71,7 @@ class Hashtag(db.Model):
 class Story(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     image_file = db.Column(db.String(20), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime(timezone=True), server_default=func.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('stories', lazy=True))
 
@@ -86,7 +89,18 @@ class Like(db.Model):
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime(timezone=True), server_default=func.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     data = db.Column(db.Text, nullable=False)
     read = db.Column(db.Boolean, default=False)
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    read = db.Column(db.Boolean, default=False)
+
+    sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
+    recipient = db.relationship('User', foreign_keys=[recipient_id], backref='received_messages')

@@ -3,31 +3,39 @@
 <div class="row">
     <div class="col-md-8 offset-md-2">
         <h1>{{ user.username }}'s Profile</h1>
-        <img src="{{ url_for('static', filename='profile_pics/' + user.profile_image) }}" class="rounded-circle" alt="{{ user.username }}'s profile picture" width="150" height="150">
+        <div class="text-center">
+            <img src="{{ url_for('static', filename='profile_pics/' + user.profile_image) }}" alt="Profile picture" class="img-fluid rounded-circle" style="max-width: 150px;">
+        </div>
+        {% if not current_user.is_authenticated %}
+        <div class="mt-4">
+            <h3>Login to follow {{ user.username }}</h3>
+        </div>
+        {% else %}
+        <div class="mt-4">
+            {% if current_user.username != user.username %}
+                {% if is_following %}
+                <a href="{{ url_for('main.unfollow', username=user.username) }}" class="btn btn-danger">Unfollow</a>
+                {% else %}
+                <a href="{{ url_for('main.follow', username=user.username) }}" class="btn btn-primary">Follow</a>
+                {% endif %}
+            {% else %}
+            <a href="{{ url_for('main.edit_profile') }}" class="btn btn-secondary">Edit Profile</a>
+            {% endif %}
+        </div>
+        {% endif %}
         <div class="mt-4">
             <h3>Stories</h3>
             <div class="row">
-                {% for story in user.stories %}
+                {% for story in stories %}
                 <div class="col-md-4 mb-3">
                     <a href="{{ url_for('main.view_story', story_id=story.id) }}">
-                        <img src="{{ url_for('static', filename='story_pics/' + story.image_file) }}" alt="Story Image" class="img-fluid">
+                        <img src="{{ url_for('static', filename='story_pics/' ~ story.image_file) }}" class="img-fluid" alt="Story image">
                     </a>
                 </div>
                 {% endfor %}
             </div>
         </div>
         <h3>Posts</h3>
-        {% if user != current_user %}
-            {% if is_following %}
-                <form action="{{ url_for('main.unfollow', username=user.username) }}" method="POST">
-                    <button type="submit" class="btn btn-danger">Unfollow</button>
-                </form>
-            {% else %}
-                <form action="{{ url_for('main.follow', username=user.username) }}" method="POST">
-                    <button type="submit" class="btn btn-primary">Follow</button>
-                </form>
-            {% endif %}
-        {% endif %}
         {% for post in posts %}
         <div class="card mb-4">
             <img src="{{ url_for('main.uploaded_file', filename=post.image_file) }}" class="card-img-top" alt="Post image">

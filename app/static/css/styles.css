@@ -3,7 +3,6 @@ body {
 }
 nav {
     background-color: #333;
-    color: #fff;
     padding: 1rem;
     text-align: center;
 }
@@ -29,4 +28,13 @@ nav a {
 .post img {
     width: 100%;
     height: auto;
+}
+.navbar-nav .nav-link .fas {
+    color: #333;  /* This makes sure the icon inherits the color of its parent */
+    margin-right: 5px;  /* Add some spacing between the icon and the text */
+}
+
+.navbar-nav .nav-link .badge {
+    color: #333;
+    margin-left: 5px;  /* Add some spacing between the text and the badge */
 }

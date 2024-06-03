@@ -61,3 +61,8 @@ class EditProfileForm(FlaskForm):
 class SearchForm(FlaskForm):
     query = StringField('Search', validators=[DataRequired()])
     submit = SubmitField('Search')
+
+class MessageForm(FlaskForm):
+    recipient = StringField('Recipient', validators=[DataRequired()])
+    body = TextAreaField('Message', validators=[DataRequired(), Length(min=1, max=500)])
+    submit = SubmitField('Send')

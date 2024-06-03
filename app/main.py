@@ -6,8 +6,8 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from PIL import Image
 from . import db
-from .models import Post, User, Comment, Like, Notification, Story, Hashtag
-from .forms import UploadForm, CommentForm, EditProfileForm, SearchForm, StoryForm
+from .models import Post, User, Comment, Like, Notification, Story, Hashtag, Message
+from .forms import UploadForm, CommentForm, EditProfileForm, SearchForm, StoryForm, MessageForm
 
 
 main = Blueprint('main', __name__)
@@ -133,17 +133,24 @@ def view_story(story_id):
 def uploaded_file(filename):
     return send_from_directory(os.path.join(current_app.root_path, 'uploads'), filename)
 
-@main.route('/profile/<username>')
+@main.route('/profile/<username>', methods=['GET', 'POST'])
 @login_required
 def profile(username):
     form = SearchForm()
-    story_form = StoryForm()
+    comment_form = CommentForm()
     user = User.query.filter_by(username=username).first_or_404()
+    is_current_user = user.id == current_user.id
+    is_following = current_user.is_following(user)
+    message_form = MessageForm()
+    if message_form.validate_on_submit() and not is_current_user:
+        message = Message(sender=current_user, recipient=user, body=message_form.body.data)
+        db.session.add(message)
+        db.session.commit()
+        flash('Your message has been sent.', 'success')
+        return redirect(url_for('main.profile', username=username))
     stories = Story.query.filter_by(user_id=user.id).order_by(Story.timestamp.desc()).all()
     posts = Post.query.filter_by(user_id=user.id).order_by(Post.timestamp.desc()).all()
-    comment_form = CommentForm()
-    is_following = current_user.is_following(user)
-    return render_template('profile.html', user=user, posts=posts, comment_form=comment_form, is_following=is_following, form=form, stories=stories, story_form=story_form)
+    return render_template('profile.html', user=user, is_current_user=is_current_user, form=form, stories=stories, posts=posts, search_form=form, comment_form = comment_form, message_form = message_form, is_following=is_following,)
 
 @main.route('/comment/<int:post_id>', methods=['POST'])
 @login_required
@@ -174,35 +181,34 @@ def like(post_id):
     create_notification(post.author, 'like', message)
     return redirect(request.referrer or url_for('main.index'))
 
-@main.route('/follow/<username>', methods=['POST'])
+@main.route('/follow/<username>')
 @login_required
 def follow(username):
-    user = User.query.filter_by(username=username).first_or_404()
+    user = User.query.filter_by(username=username).first()
     if user is None:
-        flash(f'User {username} not found.', 'danger')
+        flash('User {} not found.'.format(username), 'danger')
         return redirect(url_for('main.index'))
     if user == current_user:
         flash('You cannot follow yourself!', 'danger')
         return redirect(url_for('main.profile', username=username))
     current_user.follow(user)
     db.session.commit()
-    create_notification(user, 'follow', f'{current_user.username} is now following you.')
-    flash(f'You are now following {username}!', 'success')
+    flash('You are now following {}!'.format(username), 'success')
     return redirect(url_for('main.profile', username=username))
 
-@main.route('/unfollow/<username>', methods=['POST'])
+@main.route('/unfollow/<username>')
 @login_required
 def unfollow(username):
-    user = User.query.filter_by(username=username).first_or_404()
+    user = User.query.filter_by(username=username).first()
     if user is None:
-        flash(f'User {username} not found.', 'danger')
+        flash('User {} not found.'.format(username), 'danger')
         return redirect(url_for('main.index'))
     if user == current_user:
         flash('You cannot unfollow yourself!', 'danger')
         return redirect(url_for('main.profile', username=username))
     current_user.unfollow(user)
     db.session.commit()
-    flash(f'You have unfollowed {username}.', 'success')
+    flash('You are no longer following {}.'.format(username), 'success')
     return redirect(url_for('main.profile', username=username))
 
 @main.route('/edit_profile', methods=['GET', 'POST'])
@@ -255,3 +261,41 @@ def hashtag(hashtag):
     hashtag_obj = Hashtag.query.filter_by(name=hashtag).first_or_404()
     posts = Post.query.join(Post.hashtags).filter(Hashtag.id == hashtag_obj.id).order_by(Post.timestamp.desc()).all()
     return render_template('hashtag.html', hashtag=hashtag, posts=posts, comment_form=comment_form, form=form, story_form=story_form)
+
+@main.route('/messages', methods=['GET', 'POST'])
+@login_required
+def messages():
+    form = SearchForm()
+    message_form = MessageForm()
+    if message_form.validate_on_submit():
+        recipient_username = message_form.recipient.data
+        recipient = User.query.filter_by(username=recipient_username).first()
+        if recipient:
+            message = Message(sender=current_user, recipient=recipient, body=message_form.body.data)
+            db.session.add(message)
+            db.session.commit()
+            flash('Your message has been sent.', 'success')
+        else:
+            flash('Recipient not found.', 'danger')
+        return redirect(url_for('main.messages'))
+    received_messages = Message.query.filter_by(recipient_id=current_user.id).order_by(Message.timestamp.desc()).all()
+    for message in received_messages:
+        if not message.read:
+            message.read = True
+    db.session.commit()
+    
+    return render_template('messages.html', form=form, messages=received_messages, message_form=message_form)
+
+@main.route('/send_message/<recipient>', methods=['GET', 'POST'])
+@login_required
+def send_message(recipient):
+    form = SearchForm()
+    message_form = MessageForm()
+    recipient_user = User.query.filter_by(username=recipient).first_or_404()
+    if message_form.validate_on_submit():
+        message = Message(sender=current_user, recipient=recipient_user, body=message_form.body.data)
+        db.session.add(message)
+        db.session.commit()
+        flash('Your message has been sent.', 'success')
+        return redirect(url_for('main.messages'))
+    return render_template('send_message.html', form=form, recipient=recipient, message_form=message_form, recipient_user = recipient_user, message = message)

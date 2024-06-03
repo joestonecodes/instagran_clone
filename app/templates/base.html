@@ -1,25 +1,73 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <title>Instagram Clone</title>
-    <style>
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        .form-check-input {
-            margin-right: 0.5rem;
-        }
-        .form-check-label {
-            margin-right: 1.5rem;
-        }
-    </style>
-</head>
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <title>Instagram Clone</title>
+        <style>
+            :root {
+                --primary-color: #ff6f61; /* Warm primary color */
+                --secondary-color: #ffcccb; /* Light warm secondary color */
+                --background-color: #fff5e6; /* Warm background color */
+                --text-color: #4a4a4a; /* Dark text color */
+                --link-color: #ff6f61; /* Warm link color */
+            }
+    
+            body {
+                background-color: var(--background-color);
+                color: var(--text-color);
+            }
+            .navbar {
+
+                color:var(--primary-color)
+
+            }
+    
+            .navbar, .dropdown-menu {
+                background-color: var(--primary-color);
+            }
+    
+            .nav-link, .dropdown-item {
+                color: var(--text-color);
+            }
+    
+            .nav-link:hover, .dropdown-item:hover {
+                color: var(--link-color);
+            }
+    
+            .badge-danger {
+                background-color: #ff5733; /* Warm badge color */
+            }
+    
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+    
+            .form-check-input {
+                margin-right: 0.5rem;
+            }
+    
+            .form-check-label {
+                margin-right: 1.5rem;
+            }
+    
+            .navbar-nav .nav-link .fas {
+                color: inherit; /* Ensure the icon inherits the color */
+                margin-right: 5px; /* Add spacing between the icon and the text */
+            }
+    
+            .navbar-nav .nav-link .badge {
+                margin-left: 5px; /* Add spacing between the text and the badge */
+            }
+        </style>
+    </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg" style="color: var(--primary-color);" >
         <a class="navbar-brand" href="{{ url_for('main.index') }}">Instagram Clone</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ml-auto">
@@ -27,42 +75,49 @@
                     <form class="form-inline" method="POST" action="{{ url_for('main.search') }}">
                         {{ form.hidden_tag() }}
                         <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="query">
-                        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                        <button class="btn btn-outline-light my-2 my-sm-0" style="color: white;" type="submit">Search</button>
                     </form>
                 </li>
                 {% if current_user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.feed') }}">Feed</a>
+                    <a class="nav-item" style="color:white" href="{{ url_for('main.explore') }}">Explore</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.explore') }}">Explore</a>
+                    <a class="fas fa-home" style="color:white" href="{{ url_for('main.feed') }}"></a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="fas fa-upload" style="color:white"  href="{{ url_for('main.upload') }}"></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.upload') }}">Upload</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.notifications') }}">
-                        Notifications
+                    <a class="fas fa-bell" style="color:white" href="{{ url_for('main.notifications') }}">
                         {% if current_user.notifications.filter_by(read=False).count() > 0 %}
                         <span class="badge badge-danger">{{ current_user.notifications.filter_by(read=False).count() }}</span>
                         {% endif %}
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.profile', username=current_user.username) }}">Profile</a>
+                    <a class="fas fa-envelope" style="color:white" href="{{ url_for('main.messages') }}">
+                        {% if current_user.unread_messages() > 0 %}
+                        <span class="badge badge-danger">{{ current_user.unread_messages() }}</span>
+                        {% endif %}
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.edit_profile') }}">Edit Profile</a>
+                    <a class="fas fa-user" style="color:white" href="{{ url_for('main.profile', username=current_user.username) }}"></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+                    <a class="fas  fa-cog" style="color:white" href="{{ url_for('main.edit_profile') }}"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="fas fa-sign-out-alt" style="color:white"  href="{{ url_for('auth.logout') }}"></a>
                 </li>
                 {% else %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                    <a class="fas fa-sign-in-alt" style="color:white" href="{{ url_for('auth.login') }}"></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+                    <a class="fas fa-user-plus" style="color:white" href="{{ url_for('auth.register') }}"></a>
                 </li>
                 {% endif %}
             </ul>
