@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1>#{{ hashtag }}</h1>
+        
+        <!-- Posts Section -->
+        {% for post in posts %}
+        <div class="card mb-4">
+            <img src="{{ url_for('main.uploaded_file', filename=post.image_file) }}" class="card-img-top" alt="Post image">
+            <div class="card-body">
+                <p class="card-text">
+                    Posted by <a href="{{ url_for('main.profile', username=post.author.username) }}"><strong>{{ post.author.username }}</strong></a>
+                </p>
+                <form method="POST" action="{{ url_for('main.like', post_id=post.id) }}">
+                    <button type="submit" class="btn btn-link">
+                        {% if current_user.is_authenticated and post.likes|selectattr('user_id', 'equalto', current_user.id)|list %}
+                        <span>&#x2764;</span>
+                        {% else %}
+                        <span>&#x2661;</span>
+                        {% endif %}
+                        {{ post.likes|length }} Likes
+                    </button>
+                </form>
+                <hr>
+                <h5>Comments</h5>
+                {% for comment in post.comments %}
+                <div class="mb-2">
+                    <strong>{{ comment.author.username }}:</strong> {{ comment.text }}
+                </div>
+                {% endfor %}
+                {% if current_user.is_authenticated %}
+                <form method="POST" action="{{ url_for('main.comment', post_id=post.id) }}">
+                    {{ comment_form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ comment_form.text(class="form-control", placeholder="Add a comment...") }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Comment</button>
+                </form>
+                {% endif %}
+                <hr>
+                <div>
+                    <strong>Hashtags:</strong>
+                    {% for hashtag in post.hashtags %}
+                        <a href="{{ url_for('main.hashtag', hashtag=hashtag.name) }}">#{{ hashtag.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

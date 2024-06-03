@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1>{{ story.user.username }}'s Story</h1>
+        <img src="{{ url_for('static', filename='story_pics/' + story.image_file) }}" alt="Story Image" class="img-fluid">
+        <p><small class="text-muted">{{ story.timestamp }}</small></p>
+    </div>
+</div>
+{% endblock %}

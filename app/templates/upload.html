@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1>Upload</h1>
+        <form method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.image.label(class="form-label") }}
+                {{ form.image(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.upload_type.label(class="form-label d-block") }}
+                {% for subfield in form.upload_type %}
+                <div class="form-check form-check-inline">
+                    {{ subfield(class="form-check-input") }}
+                    {{ subfield.label(class="form-check-label") }}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.hashtags.label(class="form-label") }}
+                {{ form.hashtags(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.rotate.label(class="form-label") }}
+                {{ form.rotate(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.resize_width.label(class="form-label") }}
+                {{ form.resize_width(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.resize_height.label(class="form-label") }}
+                {{ form.resize_height(class="form-control") }}
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Upload</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
